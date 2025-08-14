@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lahzo - Digital Connection Platform</title>
+  <meta name="description" content="Experience seamless digital communication with Lahzo">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #fff8f1;       /* Soft off-white background */
+      --card: #ffffff;     /* White cards */
+      --ink: #0f2a3d;      /* Dark blue text */
+      --muted: #8a95a3;    /* Gray text */
+      --teal: #17c7c9;     /* Main turquoise */
+      --teal-dark: #12aab0;/* Darker turquoise */
+      --radius: 18px;      /* Border radius */
+      --shadow: 0 8px 20px rgba(15,42,61,.06); /* Soft shadow */
+    }
+
+    /* Reset & base */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.6;
+      overflow-x: hidden; /* Prevent horizontal overflow */
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      width: 100%;
+    }
+
+    /* Header */
+    header {
+      padding: 20px 0;
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+    }
+
+    .logo-text {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--teal);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 25px;
+      flex-grow: 1;
+      justify-content: center;
+    }
+
+    .nav-link {
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s ease;
+      font-size: clamp(14px, 1.5vw, 16px);
+    }
+
+    .nav-link:hover {
+      color: var(--teal);
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+      flex-shrink: 0;
+      margin-left: auto; /* Push buttons to the far right */
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-size: clamp(14px, 1.5vw, 16px);
+    }
+
+    .btn-outline {
+      border: 2px solid var(--teal);
+      color: var(--teal);
+      background: transparent;
+    }
+
+    .btn-outline:hover {
+      background: rgba(23, 199, 201, 0.1);
+    }
+
+    .btn-primary {
+      background: var(--teal);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--teal-dark);
+    }
+
+    /* Hamburger Menu */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      gap: 5px;
+    }
+
+    .hamburger span {
+      width: 25px;
+      height: 3px;
+      background: var(--teal);
+      border-radius: 3px;
+      transition: all 0.3s ease;
+    }
+
+    .hamburger.open span:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .hamburger.open span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger.open span:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -7px);
+    }
+
+    #nav-toggle {
+      display: none;
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: clamp(40px, 10vh, 80px) 0;
+      text-align: center;
+    }
+
+    .hero-content {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .logo-large {
+      width: clamp(60px, 10vw, 80px);
+      height: clamp(60px, 10vw, 80px);
+      margin: 0 auto 20px;
+    }
+
+    .hero-title {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: var(--ink);
+    }
+
+    .hero-subtitle {
+      font-size: clamp(16px, 2vw, 18px);
+      color: var(--muted);
+      margin-bottom: 30px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Features Section */
+    .section {
+      padding: clamp(40px, 10vh, 80px) 0;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: clamp(24px, 4vw, 32px);
+      font-weight: 800;
+      margin-bottom: 15px;
+      color: var(--ink);
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto 40px;
+      font-size: clamp(14px, 1.8vw, 16px);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: clamp(20px, 3vw, 30px);
+      box-shadow: var(--shadow);
+      transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .feature-icon {
+      width: clamp(40px, 6vw, 50px);
+      height: clamp(40px, 6vw, 50px);
+      background: rgba(23, 199, 201, 0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .feature-icon svg {
+      width: clamp(20px, 3vw, 24px);
+      height: clamp(20px, 3vw, 24px);
+      color: var(--teal);
+    }
+
+    .feature-title {
+      font-size: clamp(18px, 2.5vw, 20px);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .feature-description {
+      color: var(--muted);
+      font-size: clamp(14px, 1.8vw, 16px);
+    }
+
+    /* CTA Section */
+    .cta {
+      background: var(--teal);
+      padding: clamp(30px, 8vh, 60px) 0;
+      text-align: center;
+      color: white;
+    }
+
+    .cta-title {
+      font-size: clamp(24px, 4vw, 32px);
+      font-weight: 800;
+      margin-bottom: 20px;
+    }
+
+    .cta-subtitle {
+      max-width: 500px;
+      margin: 0 auto 30px;
+      opacity: 0.9;
+      font-size: clamp(14px, 1.8vw, 16px);
+    }
+
+    .cta-button {
+      display: inline-block;
+      padding: 12px 30px;
+      background: white;
+      color: var(--teal-dark);
+      border-radius: var(--radius);
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 0.3s ease;
+      font-size: clamp(14px, 1.5vw, 16px);
+    }
+
+    .cta-button:hover {
+      transform: translateY(-3px);
+    }
+
+    /* Footer */
+    footer {
+      background: var(--card);
+      padding: clamp(30px, 8vh, 50px) 0 30px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      text-decoration: none;
+    }
+
+    .footer-logo-text {
+      font-size: clamp(18px, 2.5vw, 20px);
+      font-weight: 700;
+      color: var(--teal);
+    }
+
+    .footer-description {
+      color: var(--muted);
+      margin-bottom: 20px;
+      font-size: clamp(14px, 1.8vw, 16px);
+    }
+
+    .footer-heading {
+      font-size: clamp(16px, 2vw, 18px);
+      font-weight: 700;
+      margin-bottom: 15px;
+      color: var(--ink);
+    }
+
+    .footer-links {
+      list-style: none;
+    }
+
+    .footer-link {
+      margin-bottom: 10px;
+    }
+
+    .footer-link a {
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.3s ease;
+      font-size: clamp(14px, 1.8vw, 16px);
+    }
+
+    .footer-link a:hover {
+      color: var(--teal);
+    }
+
+    .footer-bottom {
+      text-align: center;
+      padding-top: 30px;
+      border-top: 1px solid rgba(138, 149, 163, 0.2);
+      color: var(--muted);
+      font-size: clamp(12px, 1.5vw, 14px);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .container {
+        padding: 0 15px;
+      }
+      .features-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      }
+      .hero-content {
+        max-width: 600px;
+      }
+      .nav-buttons {
+        margin-left: auto; /* Ensure buttons stay on the right */
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: clamp(26px, 5vw, 36px);
+      }
+      .hero-buttons {
+        flex-direction: column;
+        gap: 10px;
+      }
+      .nav-links {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        gap: 15px;
+        padding: 20px;
+        background: var(--card);
+        position: absolute;
+        top: 100%;
+        left: 0;
+      }
+      .nav-links.active {
+        display: flex;
+      }
+      .hamburger {
+        display: flex;
+      }
+      .navbar {
+        position: relative;
+        justify-content: space-between;
+      }
+      .nav-buttons {
+        margin-left: auto; /* Keep buttons on the right */
+      }
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+      .footer-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-title {
+        font-size: clamp(24px, 6vw, 30px);
+      }
+      .section-title {
+        font-size: clamp(22px, 5vw, 28px);
+      }
+      .btn {
+        padding: 8px 16px;
+        font-size: clamp(12px, 1.5vw, 14px);
+      }
+      .feature-card {
+        padding: 20px;
+      }
+      .logo-icon, .footer-logo svg {
+        width: 30px;
+        height: 30px;
+      }
+      .logo-text, .footer-logo-text {
+        font-size: clamp(18px, 2.5vw, 20px);
+      }
+      .container {
+        padding: 0 10px;
+      }
+      .nav-buttons {
+        gap: 8px; /* Slightly reduce gap for small screens */
+        margin-left: auto; /* Ensure buttons stay on the right */
+      }
+    }
+
+    @media (min-width: 1440px) {
+      .container {
+        max-width: 1400px;
+      }
+      .hero-title {
+        font-size: clamp(42px, 5vw, 48px);
+      }
+      .section-title {
+        font-size: clamp(32px, 4vw, 36px);
+      }
+      .features-grid {
+        gap: 30px;
+      }
+      .nav-buttons {
+        margin-left: auto; /* Ensure buttons stay on the right */
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container">
+      <nav class="navbar">
+        <a href="#" class="logo">
+          <svg class="logo-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 10h40a10 10 0 0 1 10 10v18a10 10 0 0 1-10 10H28l-9.6 8.2c-2.1 1.8-5.4.3-5.4-2.5V38A18 18 0 0 1 12 10z"
+                  fill="var(--teal)"/>
+            <circle cx="38" cy="28" r="13" fill="#fff"/>
+            <circle cx="38" cy="28" r="9.5" fill="none" stroke="#122b3a" stroke-width="2.8"/>
+            <path d="M38 22v6l4.8 2.9" stroke="#122b3a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </svg>
+          <span class="logo-text">Lahzo</span>
+        </a>
+        <div class="nav-links">
+          <a href="#features" class="nav-link">Features</a>
+          <a href="#" class="nav-link">Pricing</a>
+          <a href="#" class="nav-link">Download</a>
+          <a href="#" class="nav-link">About</a>
+        </div>
+        <div class="nav-buttons">
+          <a href="login.html" class="btn btn-outline">Login</a>
+          <a href="signup.html" class="btn btn-primary">Sign Up</a>
+        </div>
+        <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <input type="checkbox" id="nav-toggle">
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <svg class="logo-large" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 10h40a10 10 0 0 1 10 10v18a10 10 0 0 1-10 10H28l-9.6 8.2c-2.1 1.8-5.4.3-5.4-2.5V38A18 18 0 0 1 12 10z"
+                fill="var(--teal)"/>
+          <circle cx="38" cy="28" r="13" fill="#fff"/>
+          <circle cx="38" cy="28" r="9.5" fill="none" stroke="#122b3a" stroke-width="2.8"/>
+          <path d="M38 22v6l4.8 2.9" stroke="#122b3a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <h1 class="hero-title">Connect Without Limits</h1>
+        <p class="hero-subtitle">
+          Lahzo offers a seamless communication experience with intuitive design and powerful features 
+          that keep you connected with what matters most.
+        </p>
+        <div class="hero-buttons">
+          <a href="signup.html" class="btn btn-primary">Get Started</a>
+          <a href="#features" class="btn btn-outline">Learn More</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="section" id="features">
+    <div class="container">
+      <h2 class="section-title">Why Choose Lahzo</h2>
+      <p class="section-subtitle">
+        Our platform is designed to make your digital communication effortless and enjoyable
+      </p>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22 16.92V19.92C22 20.52 21.56 21 21 21H3C2.44 21 2 20.52 2 19.92V16.92C2 16.32 2.44 15.84 3 15.84H21C21.56 15.84 22 16.32 22 16.92Z" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M19 9.92V4.92C19 4.32 18.56 3.84 18 3.84H6C5.44 3.84 5 4.32 5 4.92V9.92C5 10.52 5.44 10.99 6 10.99H18C18.56 10.99 19 10.52 19 9.92Z" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M5 10V15.84" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M19 10V15.84" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 7.92H7" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M9 18.92H7" stroke="currentColor" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Multi-Platform</h3>
+          <p class="feature-description">
+            Access Lahzo from any device with seamless synchronization across all your platforms.
+          </p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 8V12L15 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Real-Time Sync</h3>
+          <p class="feature-description">
+            Your conversations are instantly updated across all devices in real-time.
+          </p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 11H5M19 11C20.1046 11 21 11.8954 21 13V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V13C3 11.8954 3.89543 11 5 11M19 11V9C19 7.89543 18.1046 7 17 7M5 11V9C5 7.89543 5.89543 7 7 7M7 7V5C7 3.89543 7.89543 3 9 3H15C16.1046 3 17 3.89543 17 5V7M7 7H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">Secure Storage</h3>
+          <p class="feature-description">
+            End-to-end encrypted storage ensures your data remains private and secure.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta">
+    <div class="container">
+      <h2 class="cta-title">Ready to Get Started?</h2>
+      <p class="cta-subtitle">
+        Join thousands of users who are already experiencing seamless communication with Lahzo
+      </p>
+      <a href="signup.html" class="cta-button">Create Free Account</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <a href="#" class="footer-logo">
+            <svg width="30" height="30" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 10h40a10 10 0 0 1 10 10v18a10 10 0 0 1-10 10H28l-9.6 8.2c-2.1 1.8-5.4.3-5.4-2.5V38A18 18 0 0 1 12 10z"
+                    fill="var(--teal)"/>
+              <circle cx="38" cy="28" r="13" fill="#fff"/>
+              <circle cx="38" cy="28" r="9.5" fill="none" stroke="#122b3a" stroke-width="2.8"/>
+              <path d="M38 22v6l4.8 2.9" stroke="#122b3a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+            <span class="footer-logo-text">Lahzo</span>
+          </a>
+          <p class="footer-description">
+            The next generation communication platform designed for simplicity and efficiency.
+          </p>
+        </div>
+        
+        <div class="footer-col">
+          <h3 class="footer-heading">Product</h3>
+          <ul class="footer-links">
+            <li class="footer-link"><a href="#features">Features</a></li>
+            <li class="footer-link"><a href="#">Pricing</a></li>
+            <li class="footer-link"><a href="#">Download</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-col">
+          <h3 class="footer-heading">Company</h3>
+          <ul class="footer-links">
+            <li class="footer-link"><a href="#">About</a></li>
+            <li class="footer-link"><a href="#">Careers</a></li>
+            <li class="footer-link"><a href="#">Contact</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-col">
+          <h3 class="footer-heading">Legal</h3>
+          <ul class="footer-links">
+            <li class="footer-link"><a href="#">Privacy</a></li>
+            <li class="footer-link"><a href="#">Terms</a></li>
+            <li class="footer-link"><a href="#">Security</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        &copy; <span id="year"></span> Lahzo. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Set current year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Hamburger menu toggle
+    document.querySelector('.hamburger').addEventListener('click', () => {
+      document.querySelector('.nav-links').classList.toggle('active');
+      document.querySelector('.hamburger').classList.toggle('open');
+    });
+  </script>
+</body>
+</html>

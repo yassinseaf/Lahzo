@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lahzo - إنشاء/الدخول إلى غرفة</title>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #fff8f1; --card: #ffffff; --ink: #0f2a3d; --muted: #8a95a3;
+      --teal: #17c7c9; --teal-dark: #12aab0; --radius: 18px;
+      --shadow: 0 8px 20px rgba(15,42,61,.06);
+      --shadow-strong: 0 18px 40px rgba(15,42,61,.10), 0 6px 18px rgba(15,42,61,.06);
+    }
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body { font-family:'Tajawal',sans-serif; background:var(--bg); color:var(--ink); min-height:100vh; padding:20px; display:flex; flex-direction:column; }
+    .container { max-width:600px; margin:0 auto; width:100%; flex:1; display:flex; flex-direction:column; justify-content:center; }
+    header { padding:20px 0; display:flex; justify-content:space-between; align-items:center; }
+    .logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+    .logo-icon { width:36px; height:36px; }
+    .logo-text { font-size:22px; font-weight:700; color:var(--teal); }
+    .user-menu { display:flex; align-items:center; gap:15px; }
+    .user-avatar { width:40px; height:40px; border-radius:50%; background-color:var(--teal); color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer; }
+    .page-title { font-size:32px; font-weight:700; margin-bottom:30px; text-align:center; color:var(--ink); }
+    .room-card { background:var(--card); border-radius:var(--radius); padding:30px; box-shadow:var(--shadow-strong); text-align:center; }
+    .room-title { font-size:24px; font-weight:700; margin-bottom:15px; color:var(--teal); }
+    .room-description { color:var(--muted); margin-bottom:25px; }
+    .room-input { width:100%; padding:15px; border:1px solid #e8edf3; border-radius:12px; font-size:16px; outline:none; transition:border-color .3s ease; margin-bottom:15px; }
+    .room-input:focus { border-color:var(--teal); }
+    .btn { padding:15px 30px; border-radius:12px; font-weight:600; font-size:16px; cursor:pointer; transition:all .3s ease; border:none; width:100%; }
+    .btn-primary { background:var(--teal); color:white; }
+    .btn-primary:hover { background:var(--teal-dark); }
+    .btn:disabled { background:var(--muted); cursor:not-allowed; }
+    .message { margin-top:15px; padding:12px; border-radius:8px; text-align:center; font-size:14px; display:none; }
+    .error { background-color:#ffebee; color:#d32f2f; display:block; }
+    .success { background-color:#e8f5e9; color:#388e3c; display:block; }
+    footer { text-align:center; padding:20px 0; color:var(--muted); font-size:14px; margin-top:30px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="#" class="logo">
+        <svg class="logo-icon" viewBox="0 0 64 64"><path d="M12 10h40a10 10 0 0 1 10 10v18a10 10 0 0 1-10 10H28l-9.6 8.2c-2.1 1.8-5.4.3-5.4-2.5V38A18 18 0 0 1 12 10z" fill="var(--teal)"/><circle cx="38" cy="28" r="13" fill="#fff"/><circle cx="38" cy="28" r="9.5" fill="none" stroke="#122b3a" stroke-width="2.8"/><path d="M38 22v6l4.8 2.9" stroke="#122b3a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        <span class="logo-text">Lahzo</span>
+      </a>
+      <div class="user-menu"><div class="user-avatar" id="userAvatar">?</div></div>
+    </header>
+
+    <h1 class="page-title">الدخول إلى غرفة الدردشة</h1>
+
+    <div class="room-card">
+      <h2 class="room-title">أدخل اسم الغرفة</h2>
+      <p class="room-description">اكتب اسم الغرفة التي تريد الانضمام إليها أو إنشائها</p>
+      <input type="text" class="room-input" id="roomName" placeholder="اسم الغرفة" maxlength="50">
+      <button class="btn btn-primary" id="enterRoomBtn">الدخول إلى الغرفة</button>
+      <div class="message" id="message"></div>
+    </div>
+
+    <footer>&copy; <span id="year"></span> Lahzo. جميع الحقوق محفوظة.</footer>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDHGReKr-sUPLmAUmrdZ4VqosUFJo_4N5A",
+      authDomain: "pass-a0dfa.firebaseapp.com",
+      databaseURL: "https://pass-a0dfa-default-rtdb.firebaseio.com",
+      projectId: "pass-a0dfa",
+      storageBucket: "pass-a0dfa.appspot.com",
+      messagingSenderId: "1031896299376",
+      appId: "1:1031896299376:web:dd47f651d814d87ebc81b5"
+    };
+
+    let auth, database;
+    const app = firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    database = firebase.database();
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    auth.onAuthStateChanged(user => {
+      if(user){
+        const displayName = user.displayName || user.email.split('@')[0];
+        document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    document.getElementById('enterRoomBtn').addEventListener('click', async () => {
+      const roomName = document.getElementById('roomName').value.trim();
+      if(!roomName) return showMessage('الرجاء إدخال اسم الغرفة', 'error');
+      if(/[.#$[\]]/.test(roomName)) return showMessage('اسم الغرفة يحتوي على أحرف غير مسموح بها (ممنوع: .#$[])', 'error');
+
+      const user = auth.currentUser;
+      if(!user) return showMessage('لم يتم التعرف على المستخدم، يرجى تسجيل الدخول مرة أخرى', 'error');
+
+      const roomId = 'room_' + roomName.replace(/[.#$[\]]/g, "_");
+      const btn = document.getElementById('enterRoomBtn');
+      const originalText = btn.textContent;
+      btn.textContent = 'جارٍ التحميل...'; btn.disabled = true;
+
+      try {
+        const snapshot = await database.ref('rooms/' + roomId).once('value');
+        if(snapshot.exists()){
+          await joinRoom(roomId, user.uid);
+          showMessage('تم الانضمام إلى الغرفة بنجاح!', 'success');
+        } else {
+          await createRoom(roomId, roomName, user.uid);
+          showMessage('تم إنشاء الغرفة بنجاح!', 'success');
+        }
+        setTimeout(()=> window.location.href=`chat.html?roomId=${roomId}`,1000);
+      } catch(e){
+        console.error(e); showMessage('حدث خطأ: ' + (e.message || 'غير معروف'), 'error');
+      } finally {
+        btn.textContent = originalText; btn.disabled = false;
+      }
+    });
+
+    async function createRoom(roomId, roomName, uid){
+      const data = { name: roomName, createdBy: uid, createdAt: firebase.database.ServerValue.TIMESTAMP, members: { [uid]: true } };
+      const updates = {};
+      updates['/rooms/'+roomId] = data;
+      updates['/user-rooms/'+uid+'/'+roomId] = true;
+      await database.ref().update(updates);
+    }
+
+    async function joinRoom(roomId, uid){
+      const updates = {};
+      updates[`/rooms/${roomId}/members/${uid}`] = true;
+      updates[`/user-rooms/${uid}/${roomId}`] = true;
+      await database.ref().update(updates);
+    }
+
+    function showMessage(msg,type){
+      const m=document.getElementById('message');
+      m.textContent=msg; m.className=`message ${type}`; m.style.display='block';
+    }
+
+    document.getElementById('userAvatar').addEventListener('click',()=>{
+      if(confirm('هل تريد تسجيل الخروج؟')){
+        auth.signOut().then(()=> window.location.href='login.html').catch(e=>showMessage('خطأ أثناء تسجيل الخروج: '+(e.message||'غير معروف'),'error'));
+      }
+    });
+  </script>
+</body>
+</html>

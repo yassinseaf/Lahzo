@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lahzo - غرفة الدردشة</title>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root { --bg:#fff8f1; --card:#fff; --ink:#0f2a3d; --muted:#8a95a3; --teal:#17c7c9; --teal-dark:#12aab0; --radius:18px; --shadow:0 8px 20px rgba(15,42,61,.06); }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--ink);height:100vh;display:flex;flex-direction:column;}
+    .container{max-width:1200px;margin:0 auto;width:100%;flex:1;display:flex;flex-direction:column;padding:20px;}
+    header{padding:15px 0;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(138,149,163,.2);}
+    .logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+    .logo-icon{width:30px;height:30px;}
+    .logo-text{font-size:20px;font-weight:700;color:var(--teal);}
+    .room-header{display:flex;justify-content:space-between;align-items:center;margin:15px 0;}
+    .room-title{font-size:24px;font-weight:700;color:var(--ink);}
+    .user-menu{display:flex;align-items:center;gap:15px;}
+    .user-avatar{width:36px;height:36px;border-radius:50%;background-color:var(--teal);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;cursor:pointer;}
+    .chat-container{flex:1;display:flex;flex-direction:column;border-radius:var(--radius);background:var(--card);box-shadow:var(--shadow);overflow:hidden;}
+    .messages{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:15px;}
+    .message{max-width:70%;padding:12px 16px;border-radius:var(--radius);position:relative;}
+    .message-sent{align-self:flex-end;background-color:var(--teal);color:white;border-top-right-radius:5px;}
+    .message-received{align-self:flex-start;background-color:#f1f5f9;border-top-left-radius:5px;}
+    .message-sender{font-weight:700;margin-bottom:5px;font-size:14px;}
+    .message-text{word-wrap:break-word;}
+    .message-time{font-size:12px;text-align:end;margin-top:5px;opacity:.8;}
+    .input-area{padding:15px;border-top:1px solid #e8edf3;display:flex;gap:10px;}
+    .message-input{flex:1;padding:12px 15px;border:1px solid #e8edf3;border-radius:var(--radius);font-size:16px;outline:none;transition:border-color .3s ease;}
+    .message-input:focus{border-color:var(--teal);}
+    .send-btn{padding:12px 20px;border-radius:var(--radius);background:var(--teal);color:white;border:none;font-weight:600;cursor:pointer;transition:background .3s ease;}
+    .send-btn:hover{background:var(--teal-dark);}
+    .send-btn:disabled{background:var(--muted);cursor:not-allowed;}
+    .members-count{padding:10px 15px;background:rgba(23,199,201,.1);border-radius:var(--radius);font-size:14px;margin-top:10px;display:inline-block;}
+    @media(max-width:768px){.message{max-width:85%;}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="#" class="logo">
+        <svg class="logo-icon" viewBox="0 0 64 64"><path d="M12 10h40a10 10 0 0 1 10 10v18a10 10 0 0 1-10 10H28l-9.6 8.2c-2.1 1.8-5.4.3-5.4-2.5V38A18 18 0 0 1 12 10z" fill="var(--teal)"/><circle cx="38" cy="28" r="13" fill="#fff"/><circle cx="38" cy="28" r="9.5" fill="none" stroke="#122b3a" stroke-width="2.8"/><path d="M38 22v6l4.8 2.9" stroke="#122b3a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        <span class="logo-text">Lahzo</span>
+      </a>
+      <div class="user-menu"><div class="user-avatar" id="userAvatar">?</div></div>
+    </header>
+
+    <div class="room-header">
+      <h1 class="room-title" id="roomTitle">غرفة الدردشة</h1>
+      <div class="members-count" id="membersCount">1 عضو</div>
+    </div>
+
+    <div class="chat-container">
+      <div class="messages" id="messagesContainer"></div>
+      <div class="input-area">
+        <input type="text" class="message-input" id="messageInput" placeholder="اكتب رسالتك هنا..." maxlength="500">
+        <button class="send-btn" id="sendBtn">إرسال</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDHGReKr-sUPLmAUmrdZ4VqosUFJo_4N5A",
+      authDomain: "pass-a0dfa.firebaseapp.com",
+      databaseURL: "https://pass-a0dfa-default-rtdb.firebaseio.com",
+      projectId: "pass-a0dfa",
+      storageBucket: "pass-a0dfa.appspot.com",
+      messagingSenderId: "1031896299376",
+      appId: "1:1031896299376:web:dd47f651d814d87ebc81b5"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('roomId');
+
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const roomTitle = document.getElementById('roomTitle');
+    const membersCount = document.getElementById('membersCount');
+    const userAvatar = document.getElementById('userAvatar');
+
+    let currentUser = null;
+
+    auth.onAuthStateChanged(async user => {
+      if(user){
+        currentUser = user;
+        userAvatar.textContent = user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || '?';
+        if(roomId){ await loadRoom(); setupChat(); } else { window.location.href='room.html'; }
+      }else{ window.location.href='login.html'; }
+    });
+
+    async function loadRoom(){
+      const snapshot = await database.ref('rooms/'+roomId).once('value');
+      const room = snapshot.val();
+      if(room){
+        roomTitle.textContent = room.name;
+        updateMembers(room.members);
+      }else{ alert('الغرفة غير موجودة'); window.location.href='room.html'; }
+    }
+
+    function updateMembers(members){
+      const count = members ? Object.keys(members).length : 1;
+      membersCount.textContent = count + (count>1?' أعضاء':' عضو');
+    }
+
+    function setupChat(){
+      database.ref('messages/'+roomId).orderByChild('timestamp').limitToLast(50).on('value',snap=>{
+        messagesContainer.innerHTML='';
+        const msgs = snap.val();
+        if(msgs){ Object.values(msgs).forEach(addMessage); }
+        messagesContainer.scrollTop=messagesContainer.scrollHeight;
+      });
+
+      sendBtn.addEventListener('click', sendMessage);
+      messageInput.addEventListener('keypress',e=>{ if(e.key==='Enter') sendMessage(); });
+    }
+
+    async function sendMessage(){
+      const text = messageInput.value.trim();
+      if(!text) return alert('الرجاء إدخال رسالة');
+      const msg = { text, senderId: currentUser.uid, senderName: currentUser.displayName || currentUser.email.split('@')[0], timestamp: firebase.database.ServerValue.TIMESTAMP };
+      sendBtn.disabled = true; sendBtn.textContent='جارٍ الإرسال...';
+      try{ await database.ref('messages/'+roomId).push(msg); messageInput.value=''; }catch(e){ console.error(e); alert('حدث خطأ'); }
+      sendBtn.disabled=false; sendBtn.textContent='إرسال';
+    }
+
+    function addMessage(message){
+      const div=document.createElement('div');
+      div.className='message '+(message.senderId===currentUser.uid?'message-sent':'message-received');
+      const sender=document.createElement('div'); sender.className='message-sender'; sender.textContent=message.senderName;
+      const text=document.createElement('div'); text.className='message-text'; text.textContent=message.text;
+      const time=document.createElement('div'); time.className='message-time'; time.textContent=new Date(message.timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+      div.appendChild(sender); div.appendChild(text); div.appendChild(time); messagesContainer.appendChild(div);
+    }
+
+    userAvatar.addEventListener('click',()=>{ if(confirm('هل تريد تسجيل الخروج؟')) auth.signOut().then(()=>window.location.href='login.html'); });
+  </script>
+</body>
+</html>

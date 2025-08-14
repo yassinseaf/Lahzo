@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lahzo — Login</title>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg: #fff8f1;       /* soft off-white background */
+      --card: #ffffff;
+      --ink: #0f2a3d;      /* dark blue text */
+      --muted: #8a95a3;
+      --teal: #17c7c9;     /* main turquoise */
+      --teal-dark: #12aab0;/* darker turquoise for gradient */
+      --radius: 18px;
+      --shadow-strong: 0 18px 40px rgba(15,42,61,.10), 0 6px 18px rgba(15,42,61,.06);
+      --shadow-soft: 0 8px 20px rgba(15,42,61,.06);
+    }
+
+    /* Reset & base */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:
+        radial-gradient(1200px 600px at 10% 10%, rgba(23,199,201,0.06), transparent 10%),
+        radial-gradient(1000px 500px at 90% 90%, rgba(18,170,176,0.04), transparent 10%),
+        var(--bg);
+      color:var(--ink);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:32px;
+    }
+
+    /* Card */
+    .wrap{ width:100%; max-width:520px; }
+    .card{
+      background:var(--card);
+      border-radius:calc(var(--radius) + 6px);
+      box-shadow: var(--shadow-strong);
+      padding:40px 40px 34px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* Top decorative subtle shape (matches soft design) */
+    .card::before{
+      content:"";
+      position:absolute;
+      right:-120px;
+      top:-90px;
+      width:280px;
+      height:280px;
+      background: linear-gradient(180deg, rgba(23,199,201,0.06), rgba(18,170,176,0.02));
+      border-radius:50%;
+      filter: blur(10px);
+      pointer-events:none;
+    }
+
+    /* Brand row: logo + name exactly side-by-side and centered */
+    .brand{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:18px;
+      margin-bottom:30px;
+    }
+
+    /* SVG logo size same as image proportions */
+    .logo{
+      width:78px;
+      height:78px;
+      flex:0 0 78px;
+      display:block;
+    }
+
+    .brand-title{
+      font-size:40px;
+      line-height:1;
+      font-weight:800;
+      color:var(--ink);
+      letter-spacing:0.2px;
+      margin-top:2px;
+    }
+
+    /* Form */
+    form { width:100%; }
+    .fields{ display:flex; flex-direction:column; gap:14px; }
+
+    .field{
+      position:relative;
+    }
+
+    input.input{
+      width:100%;
+      padding:16px 50px 16px 16px;
+      border-radius:14px;
+      border:1.4px solid #e8edf3;
+      background:#fbfdff;
+      font-size:16px;
+      color:var(--ink);
+      outline:none;
+      transition: box-shadow .18s, border-color .15s, transform .06s;
+      box-shadow: var(--shadow-soft);
+    }
+
+    input.input::placeholder{ color:#aab4bf; }
+
+    input.input:focus{
+      border-color:#d2dde9;
+      box-shadow: 0 0 0 6px rgba(23,199,201,0.08);
+      transform: translateY(-1px);
+    }
+
+    /* Password toggle button (eye) */
+    .toggle-pass{
+      position:absolute;
+      right:12px;
+      top:50%;
+      transform:translateY(-50%);
+      width:36px;
+      height:36px;
+      border-radius:10px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      background:transparent;
+      border:0;
+      cursor:pointer;
+    }
+    .toggle-pass svg{ width:20px; height:20px; color:#7b8790; }
+
+    /* Actions */
+    .actions{ margin-top:16px; display:flex; gap:12px; align-items:center; flex-direction:column; }
+
+    .btn{
+      width:100%;
+      padding:16px;
+      border-radius:14px;
+      border:0;
+      font-weight:700;
+      font-size:17px;
+      color:#ffffff;
+      background: linear-gradient(180deg, var(--teal), var(--teal-dark));
+      box-shadow: 0 10px 30px rgba(23,199,201,0.24);
+      cursor:pointer;
+      transition: transform .06s ease, box-shadow .12s ease;
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn:hover{ box-shadow: 0 14px 36px rgba(23,199,201,0.28); }
+
+    .row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      width:100%;
+      margin-top:8px;
+    }
+
+    .forgot{
+      color:var(--ink);
+      text-decoration:underline;
+      text-decoration-thickness:1px;
+      text-underline-offset:4px;
+      font-size:14px;
+    }
+
+    .switch-form{
+      color:var(--ink);
+      text-decoration:underline;
+      text-decoration-thickness:1px;
+      text-underline-offset:4px;
+      font-size:14px;
+      cursor:pointer;
+      margin-top:10px;
+    }
+
+    .copyright{
+      margin-top:22px;
+      text-align:center;
+      color:#9aa6b2;
+      font-size:12px;
+    }
+
+    .message{
+      margin-top:15px;
+      padding:12px;
+      border-radius:10px;
+      text-align:center;
+      font-size:14px;
+      display:none;
+    }
+
+    .error{
+      background-color:#ffebee;
+      color:#d32f2f;
+      display:block;
+    }
+
+    .success{
+      background-color:#e8f5e9;
+      color:#388e3c;
+      display:block;
+    }
+
+    /* Responsive tweaks */
+    @media (max-width:480px){
+      .card{ padding:28px 20px; }
+      .logo{ width:64px; height:64px; flex:0 0 64px; }
+      .brand-title{ font-size:34px; }
+      input.input{ padding:14px 44px 14px 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="wrap" role="main">
+    <!-- Login Card -->
+    <section class="card" id="loginCard" aria-label="Lahzo login card">
+      <div class="brand" aria-hidden="false">
+        <svg class="logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lahzo logo">
+          <defs>
+            <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.08" flood-color="#0f2a3d"/>
+            </filter>
+          </defs>
+          <path d="M12 10h40a10 10 0 0 1 10 10v18a10 10 0 0 1-10 10H28l-9.6 8.2c-2.1 1.8-5.4.3-5.4-2.5V38A18 18 0 0 1 12 10z"
+                fill="var(--teal)" filter="url(#soft)"/>
+          <circle cx="38" cy="28" r="13" fill="#fff"/>
+          <circle cx="38" cy="28" r="9.5" fill="none" stroke="#122b3a" stroke-width="2.8"/>
+          <path d="M38 22v6l4.8 2.9" stroke="#122b3a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <div>
+          <div class="brand-title">Lahzo</div>
+        </div>
+      </div>
+
+      <form id="loginForm" autocomplete="on" novalidate>
+        <div id="loginMessage" class="message"></div>
+        <div class="fields">
+          <div class="field">
+            <input class="input" type="email" id="loginEmail" placeholder="Email" autocomplete="email" required aria-label="Email">
+          </div>
+
+          <div class="field">
+            <input class="input" id="loginPassword" type="password" placeholder="Password" autocomplete="current-password" required aria-label="Password">
+            <button type="button" class="toggle-pass" aria-label="Toggle password visibility" title="Show / Hide password">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke="#7b8790" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="12" r="3" stroke="#7b8790" stroke-width="1.6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" type="submit" id="loginButton">Log In</button>
+
+          <div class="row" aria-hidden="false">
+            <a class="forgot" href="#" id="forgotPassword">Forgot password?</a>
+          </div>
+          
+          <div class="switch-form" id="showSignup">Don't have an account? Sign up</div>
+        </div>
+      </form>
+
+      <div class="copyright">© <span id="year"></span> Lahzo</div>
+    </section>
+  </div>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDHGReKr-sUPLmAUmrdZ4VqosUFJo_4N5A",
+      authDomain: "pass-a0dfa.firebaseapp.com",
+      databaseURL: "https://pass-a0dfa-default-rtdb.firebaseio.com",
+      projectId: "pass-a0dfa",
+      storageBucket: "pass-a0dfa.firebasestorage.app",
+      messagingSenderId: "1031896299376",
+      appId: "1:1031896299376:web:dd47f651d814d87ebc81b5"
+    };
+
+    // Initialize Firebase
+    try {
+      const app = firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      const database = firebase.database();
+
+      // Set current year
+      document.getElementById('year').textContent = new Date().getFullYear();
+
+      // Password toggle functionality
+      const passInput = document.getElementById('loginPassword');
+      const toggleButton = document.querySelector('.toggle-pass');
+      
+      toggleButton.addEventListener('click', () => {
+        passInput.type = passInput.type === 'password' ? 'text' : 'password';
+      });
+
+      // Redirect to signup page
+      document.getElementById('showSignup').addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = 'signup.html';
+      });
+
+      // Forgot password
+      document.getElementById('forgotPassword').addEventListener('click', (e) => {
+        e.preventDefault();
+        const email = prompt('Please enter your email address to reset your password:');
+        if (email) {
+          auth.sendPasswordResetEmail(email)
+            .then(() => {
+              alert('Password reset email sent. Please check your inbox.');
+            })
+            .catch((error) => {
+              alert(translateFirebaseError(error.code));
+            });
+        }
+      });
+
+      // Login form submission
+      document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const messageElement = document.getElementById('loginMessage');
+        const loginButton = document.getElementById('loginButton');
+        
+        // Clear messages
+        messageElement.textContent = '';
+        messageElement.className = 'message';
+        
+        // Validate inputs
+        if (!email || !password) {
+          messageElement.textContent = 'Please enter both email and password';
+          messageElement.className = 'message error';
+          return;
+        }
+
+        // Show loading state
+        const originalText = loginButton.textContent;
+        loginButton.textContent = 'Logging in...';
+        loginButton.disabled = true;
+        
+        try {
+          // Sign in with email and password
+          const userCredential = await auth.signInWithEmailAndPassword(email, password);
+          const userId = userCredential.user.uid;
+
+          // Update last login time
+          try {
+            await database.ref('users/' + userId).update({
+              lastLogin: firebase.database.ServerValue.TIMESTAMP
+            });
+          } catch (dbError) {
+            console.warn('Database update failed:', dbError.message);
+            // Continue to redirect even if database update fails
+          }
+
+          messageElement.textContent = 'Login successful! Redirecting...';
+          messageElement.className = 'message success';
+          
+          setTimeout(() => {
+            window.location.href = 'room.html';
+          }, 1500);
+        } catch (error) {
+          messageElement.textContent = translateFirebaseError(error.code);
+          messageElement.className = 'message error';
+          
+          // Restore button
+          loginButton.textContent = originalText;
+          loginButton.disabled = false;
+        }
+      });
+
+      // Error translation
+      function translateFirebaseError(errorCode) {
+        const errors = {
+          'auth/invalid-email': 'Invalid email address',
+          'auth/user-disabled': 'This account has been disabled',
+          'auth/user-not-found': 'No account found with this email',
+          'auth/wrong-password': 'Incorrect password',
+          'auth/too-many-requests': 'Too many attempts, try again later',
+          'auth/invalid-credential': 'Invalid email or password',
+          'auth/network-request-failed': 'Network error, please check your connection',
+          'auth/operation-not-allowed': 'Login not allowed, contact support',
+          'auth/account-exists-with-different-credential': 'An account already exists with a different credential'
+        };
+        
+        return errors[errorCode] || `An error occurred: ${errorCode}. Please try again.`;
+      }
+    } catch (initError) {
+      console.error('Firebase initialization failed:', initError);
+      const messageElement = document.getElementById('loginMessage');
+      messageElement.textContent = 'Failed to initialize application. Please try again later.';
+      messageElement.className = 'message error';
+    }
+  </script>
+</body>
+</html>
