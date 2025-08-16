@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yassinseaf.github.io/Lahzo/sitemap.xml
